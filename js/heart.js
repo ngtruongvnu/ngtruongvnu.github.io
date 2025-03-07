@@ -4,9 +4,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('heart-container');
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     
-    // Create WebGL renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    // Create WebGL renderer with maximum quality settings
+    const renderer = new THREE.WebGLRenderer({ 
+        antialias: true, 
+        alpha: true,
+        precision: 'highp'
+    });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Balanced quality
     renderer.setClearColor(0x000000, 0); // Transparent background
     container.appendChild(renderer.domElement);
     
@@ -14,37 +19,83 @@ document.addEventListener('DOMContentLoaded', function() {
     const heartsGroup = new THREE.Group();
     scene.add(heartsGroup);
     
-    // Create multiple hearts
+    // Create smoother hearts with perfectly pink colors
     function createHeart(x, y, z, scale) {
+        // Improved heart shape with smoother bottom point
         const heartShape = new THREE.Shape();
         
-        // Heart shape coordinates
+        // Start at the bottom point - refined for smoothness
         heartShape.moveTo(0, 0);
-        heartShape.bezierCurveTo(0, -1, -1, -1.5, -2, -1);
-        heartShape.bezierCurveTo(-3, -0.5, -3, 0.5, -2, 1);
-        heartShape.bezierCurveTo(-1, 1.5, 0, 2, 0, 3);
-        heartShape.bezierCurveTo(0, 2, 1, 1.5, 2, 1);
-        heartShape.bezierCurveTo(3, 0.5, 3, -0.5, 2, -1);
-        heartShape.bezierCurveTo(1, -1.5, 0, -1, 0, 0);
         
-        // Create 3D geometry from the 2D shape
+        // Left curve - improved for smoother transition at bottom point
+        heartShape.bezierCurveTo(
+            -0.5, -0.8,   // Move control point closer for smoother bottom
+            -1.5, -1.8,   // Adjusted for smoother curve
+            -2.5, -1.0    // Adjusted endpoint
+        );
+        
+        // Left side continuing up
+        heartShape.bezierCurveTo(
+            -3.5, 0,      // Adjusted control point
+            -3.0, 1.5,    // Adjusted control point
+            -1.5, 2.0     // Adjusted endpoint
+        );
+        
+        // Top middle
+        heartShape.bezierCurveTo(
+            -0.5, 2.5,    // Adjusted control point
+            0, 3.0,       // Adjusted control point
+            0, 3.5        // Top point
+        );
+        
+        // Right side going down
+        heartShape.bezierCurveTo(
+            0, 3.0,       // Mirrored control point
+            0.5, 2.5,     // Mirrored control point
+            1.5, 2.0      // Mirrored endpoint
+        );
+        
+        // Right curve back to bottom
+        heartShape.bezierCurveTo(
+            3.0, 1.5,     // Mirrored control point
+            3.5, 0,       // Mirrored control point
+            2.5, -1.0     // Mirrored endpoint
+        );
+        
+        // Complete the heart shape with improved bottom point
+        heartShape.bezierCurveTo(
+            1.5, -1.8,    // Mirrored control point
+            0.5, -0.8,    // Mirrored control point
+            0, 0          // Back to start
+        );
+        
+        // Create 3D geometry with ultra-smooth settings
         const geometry = new THREE.ExtrudeGeometry(heartShape, {
-            depth: 0.5,
+            depth: 1.0,
             bevelEnabled: true,
-            bevelSegments: 3,
-            bevelSize: 0.3,
-            bevelThickness: 0.2
+            bevelSegments: 16,     // Increased for smoother edges
+            bevelSize: 0.2,        // Smaller bevel for cleaner edges
+            bevelThickness: 0.2,
+            curveSegments: 32      // Significantly increased for smoother curves
         });
         
-        // Create material with random pink/red color
-        const hue = Math.random() * 30 + 330; // 330-360 (red/pink)
-        const saturation = Math.random() * 40 + 60; // 60-100%
-        const lightness = Math.random() * 30 + 40; // 40-70%
+        // Center the geometry perfectly
+        geometry.center();
         
+        // Create consistently lovely pink material
+        // Perfect pink colors - no more reddish tones
+        const hue = Math.random() * 15 + 325;     // 325-340 range (perfect pink)
+        const saturation = Math.random() * 15 + 85; // 85-100% (vibrant)
+        const lightness = Math.random() * 15 + 60;  // 60-75% (bright & lovely)
+        
+        // Create beautiful materials with glow effect
         const material = new THREE.MeshPhongMaterial({
             color: new THREE.Color(`hsl(${hue}, ${saturation}%, ${lightness}%)`),
             shininess: 100,
-            specular: 0xffffff
+            specular: new THREE.Color(0xffffff),
+            flatShading: false,    // Ensure smooth shading
+            emissive: new THREE.Color(`hsl(${hue}, ${saturation}%, ${lightness-40}%)`),
+            emissiveIntensity: 0.2 // Soft glow
         });
         
         // Create mesh
@@ -57,10 +108,11 @@ document.addEventListener('DOMContentLoaded', function() {
             Math.random() * Math.PI * 2
         );
         
-        // Store original values for animation
+        // Enhanced animation parameters
         heart.userData = {
             originalScale: scale,
-            pulseSpeed: Math.random() * 0.03 + 0.01,
+            pulseSpeed: Math.random() * 0.06 + 0.09,  // Even faster pulse
+            pulseAmount: Math.random() * 0.12 + 0.18, // Stronger pulse
             rotationSpeed: {
                 x: (Math.random() - 0.5) * 0.01,
                 y: (Math.random() - 0.5) * 0.01,
@@ -75,23 +127,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // Position camera
     camera.position.z = 15;
     
-    // Add lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    // Enhanced pink lighting for better color display
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
     
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    // Pink-tinted main light
+    const directionalLight = new THREE.DirectionalLight(0xffc0cb, 0.8);
     directionalLight.position.set(1, 1, 1);
     scene.add(directionalLight);
     
+    // Pink backlight for depth
+    const backLight = new THREE.DirectionalLight(0xffe6f0, 0.5);
+    backLight.position.set(-1, 0.5, -1);
+    scene.add(backLight);
+    
+    // Soft pink point light at center
+    const pointLight = new THREE.PointLight(0xffb6c1, 0.4, 20);
+    pointLight.position.set(0, 0, 2);
+    scene.add(pointLight);
+    
     // Create multiple hearts
     const hearts = [];
-    const numHearts = 7;
+    const numHearts = 11;  // More hearts!
     
     for (let i = 0; i < numHearts; i++) {
         const x = (Math.random() - 0.5) * 20;
         const y = (Math.random() - 0.5) * 20;
         const z = (Math.random() - 0.5) * 10;
-        const scale = Math.random() * 0.3 + 0.2;
+        const scale = Math.random() * 0.3 + 0.25;  // Slightly larger
         
         hearts.push(createHeart(x, y, z, scale));
     }
@@ -99,25 +162,38 @@ document.addEventListener('DOMContentLoaded', function() {
     // Animation variables
     let time = 0;
     
-    // Animation loop
+    // Animation loop with faster beating
     function animate() {
         requestAnimationFrame(animate);
         
-        time += 0.01;
+        time += 0.025;  // Even faster time increment
         
         // Rotate the entire heart group
-        heartsGroup.rotation.y += 0.002;
+        heartsGroup.rotation.y += 0.003;
         
-        // Animate individual hearts
+        // Animate individual hearts with faster, more pronounced beating
         hearts.forEach(heart => {
             const userData = heart.userData;
             
-            // Beating animation
-            const pulseFactor = Math.sin(time * userData.pulseSpeed * 10) * 0.1 + 1;
+            // Enhanced beating animation with faster, stronger pulse
+            const beatPhase = time * userData.pulseSpeed * 18;  // Super fast beat
+            
+            // Create a heartbeat-like pattern using modified sine wave
+            let pulseFactor;
+            const normalizedPhase = beatPhase % (2 * Math.PI);
+            
+            if (normalizedPhase < Math.PI * 0.3) {
+                // Quicker contraction (systole)
+                pulseFactor = 1 - userData.pulseAmount * Math.sin(normalizedPhase * 3.3);
+            } else {
+                // Slower expansion (diastole)
+                pulseFactor = 1 + userData.pulseAmount * 0.6 * Math.sin((normalizedPhase - Math.PI * 0.3) * 0.5);
+            }
+            
             heart.scale.set(
                 userData.originalScale * pulseFactor,
-                userData.originalScale * pulseFactor,
-                userData.originalScale * pulseFactor
+                userData.originalScale * pulseFactor, 
+                userData.originalScale * pulseFactor * 0.95  // Slightly flatter in z-axis
             );
             
             // Slight rotation
@@ -134,6 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     });
     
     // Start animation
