@@ -51,8 +51,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // No button click - decrease No size, increase Yes size, and move randomly
     declineButton.addEventListener('click', function() {
-        // Decrease No button size without a minimum limit
-        noButtonSize -= 0.1;
+        // Decrease No button size but maintain a minimum size
+        noButtonSize = Math.max(0.3, noButtonSize - 0.1);
         declineButton.style.transform = `scale(${noButtonSize})`;
         
         // Increase Yes button size WITHOUT any maximum limit
@@ -66,9 +66,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Increase the gap between buttons to prevent overlap
         buttonContainer.style.gap = (20 + (yesButtonSize - 1) * 40) + 'px';
         
-        // Make the No button harder to click by reducing opacity
+        // Make the No button harder to click by reducing opacity but maintain minimum visibility
         if (noButtonSize <= 0.7) {
-            declineButton.style.opacity = noButtonSize;
+            declineButton.style.opacity = Math.max(0.4, noButtonSize);
         }
         
         // Move the No button to a random position
@@ -92,8 +92,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const messageRect = responseMessage.getBoundingClientRect();
         
         // Calculate safe margins to keep button visible on screen
-        const marginX = noRect.width;
-        const marginY = noRect.height;
+        const marginX = Math.max(40, noRect.width); // Minimum 40px width to ensure visibility
+        const marginY = Math.max(40, noRect.height); // Minimum 40px height
         
         // Calculate maximum movement range
         const maxX = viewportWidth - marginX;
@@ -106,8 +106,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         do {
             // Generate random position within safe viewport area
-            newX = Math.max(marginX, Math.random() * maxX);
-            newY = Math.max(marginY, Math.random() * maxY);
+            newX = Math.max(marginX, Math.min(Math.random() * maxX, maxX - 10));
+            newY = Math.max(marginY, Math.min(Math.random() * maxY, maxY - 10));
             
             // Keep trying until we find a non-overlapping position or reach max attempts
             attempts++;
@@ -120,9 +120,10 @@ document.addEventListener('DOMContentLoaded', function() {
         );
         
         // Position the No button relative to document
-        declineButton.style.position = 'fixed';  // Changed to fixed positioning
+        declineButton.style.position = 'fixed';
         declineButton.style.left = `${newX}px`;
         declineButton.style.top = `${newY}px`;
+        declineButton.style.zIndex = '100'; // Ensure button stays on top
     }
     
     // Function to check if two rectangles overlap
