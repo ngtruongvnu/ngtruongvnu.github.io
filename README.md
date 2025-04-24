@@ -22,3 +22,5 @@ Simply open the `index.html` file in a web browser, and you will see the proposa
 ## Contributing
 
 Feel free to modify the project to better suit your needs or to add new features. Contributions are welcome!
+
+This is for Bongiu
